@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/staging/
+    - /bin/cp -R * $DEPLOYPATH

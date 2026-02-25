@@ -1,2 +1,2 @@
 # Hidden-Notes
-This is the description for the Hidden Notes Addon 
+This is the description for the Hidden Notes Addon testing
