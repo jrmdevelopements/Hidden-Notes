@@ -1,0 +1,24 @@
+name: Pro-Flow Deploy
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Command cPanel to Pull
+        run: |
+          # Logic to pick the right path
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            REPO_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/live"
+          else
+            REPO_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/staging"
+          fi
+          
+          # The API call using your Secrets
+          curl -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+          "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH"
