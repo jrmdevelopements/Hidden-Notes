@@ -13,10 +13,11 @@ app.use('/api/notes', noteRoutes);
 
 // Health check
 app.get('/', (req, res) => {
-  res.send('Job Notes API Running...');
+  res.send('Job Notes API Running on stage...');
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port  ${PORT}`);
 });
+
