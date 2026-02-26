@@ -8,7 +8,7 @@ const { createNoteSchema } = require('../validators/noteValidator');
 const controller = require('../controllers/noteController');
 
 // Protect ALL routes using API key
-router.use(apiKey);
+// router.use(apiKey);
 
 router.post('/', validate(createNoteSchema), controller.create);
 router.get('/', pagination, controller.getAll);

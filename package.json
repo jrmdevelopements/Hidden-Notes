@@ -1,11 +1,11 @@
 {
-  "name": "hidden-notes",
+  "name": "hidden-notes-api",
   "version": "1.0.0",
-  "description": "Hidden Notes API - Staging",
+  "description": "API for Hidden Notes",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "cors": "^2.8.5",
