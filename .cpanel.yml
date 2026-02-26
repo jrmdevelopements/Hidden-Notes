@@ -1,4 +1,6 @@
 ---
 deployment:
   tasks:
-    - /bin/cp -R * /home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/staging/
+    - echo "Deployment started for Staging"
+    - /bin/chmod -R 755 *
+    - echo "Deployment successful"
