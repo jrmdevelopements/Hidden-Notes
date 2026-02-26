@@ -3,7 +3,6 @@ deployment:
   tasks:
     - /usr/bin/git reset --hard HEAD
     - /bin/chmod -R 755 *
-    - /usr/local/bin/npm install --production
     - mkdir -p tmp
     - touch tmp/restart.txt
-    - echo "Deployment and App Restart complete"
+    - echo "Deployment tasks finished successfully"
