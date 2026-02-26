@@ -23,16 +23,16 @@ jobs:
             REPO_PATH="$BASE_PATH/staging"
           fi
           
-          # 1. Update the Repository (This worked!)
+          # 1. Update the Repository (Pull)
           echo "Syncing code with server..."
           curl -X POST \
           -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
           -H "Content-Type: application/x-www-form-urlencoded" \
           "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH"
 
-          # 2. Deploy the Files (Corrected Command)
+          # 2. Trigger Deployment (The standardized UAPI call)
           echo "Running deployment tasks..."
           curl -X POST \
           -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
           -H "Content-Type: application/x-www-form-urlencoded" \
-          "${{ secrets.CPANEL_URL }}/execute/VersionControl/create_deployment?repository_root=$REPO_PATH"
+          "${{ secrets.CPANEL_URL }}/execute/VersionControl/deployment/create?repository_root=$REPO_PATH"
