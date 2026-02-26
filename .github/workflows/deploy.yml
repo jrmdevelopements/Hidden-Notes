@@ -23,14 +23,14 @@ jobs:
             REPO_PATH="$BASE_PATH/staging"
           fi
           
-          # 1. Update the Repository (Pull from GitHub)
-          echo "Syncing code with server..."
+          # 1. Force Update (The 'Force Reset' equivalent via API)
+          echo "Force-syncing code with server..."
           curl -X POST \
           -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
           -H "Content-Type: application/x-www-form-urlencoded" \
-          "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH"
+          "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH&force_update=1"
 
-          # 2. Trigger Deployment (Calls VersionControlDeployment::create)
+          # 2. Trigger Deployment Tasks
           echo "Running deployment tasks..."
           curl -X POST \
           -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
