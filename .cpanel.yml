@@ -4,4 +4,6 @@ deployment:
     - /usr/bin/git fetch origin
     - /usr/bin/git reset --hard origin/$(/usr/bin/git rev-parse --abbrev-ref HEAD)
     - /bin/chmod -R 755 *
-    - echo "Deployment to $(/usr/bin/git rev-parse --abbrev-ref HEAD) complete"
+    - mkdir -p tmp
+    - touch tmp/restart.txt
+    - echo "Deployment and App Restart complete"
