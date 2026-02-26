@@ -1,6 +1,7 @@
 ---
 deployment:
   tasks:
-    - echo "Deployment started for Staging"
+    - /usr/bin/git fetch origin
+    - /usr/bin/git reset --hard origin/$(/usr/bin/git rev-parse --abbrev-ref HEAD)
     - /bin/chmod -R 755 *
-    - echo "Deployment successful"
+    - echo "Deployment to $(/usr/bin/git rev-parse --abbrev-ref HEAD) complete"
