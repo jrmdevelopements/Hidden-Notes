@@ -1,9 +1,8 @@
 ---
 deployment:
   tasks:
-    - /usr/bin/git reset --hard HEAD
+    - /usr/bin/git reset --hard origin/staging
     - /bin/chmod -R 755 *
     - /usr/local/bin/npm install --production
     - mkdir -p tmp
     - touch tmp/restart.txt
-    - echo "Deployment tasks completed successfully!"
