@@ -10,16 +10,27 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Trigger cPanel Update
         run: |
+          # 1. Define the base path on your server
           BASE_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au"
           
-          # Logic to pick the right folder based on the branch
+          # 2. Determine which folder to update based on the branch name
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             REPO_PATH="$BASE_PATH/live"
+            echo "Targeting Environment: LIVE"
           else
             REPO_PATH="$BASE_PATH/staging"
+            echo "Targeting Environment: STAGING"
           fi
           
-          curl -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+          # 3. Execute the cPanel API Call
+          # -X POST: Required by some cPanel security layers
+          # -H Content-Type: Fixes the 415 error
+          curl -X POST \
+          -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+          -H "Content-Type: application/x-www-form-urlencoded" \
           "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH"
