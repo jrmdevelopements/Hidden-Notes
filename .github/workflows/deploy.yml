@@ -17,25 +17,22 @@ jobs:
         run: |
           BASE_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au"
           
-          # Determine target folder based on the branch
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             REPO_PATH="$BASE_PATH/live"
-            echo "Targeting Environment: LIVE"
           else
             REPO_PATH="$BASE_PATH/staging"
-            echo "Targeting Environment: STAGING"
           fi
           
-          # 1. Update the Repository (Pull from GitHub)
+          # 1. Update the Repository (This worked!)
           echo "Syncing code with server..."
           curl -X POST \
           -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
           -H "Content-Type: application/x-www-form-urlencoded" \
           "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH"
 
-          # 2. Deploy the Files (Run .cpanel.yml tasks)
+          # 2. Deploy the Files (Corrected Command)
           echo "Running deployment tasks..."
           curl -X POST \
           -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
           -H "Content-Type: application/x-www-form-urlencoded" \
-          "${{ secrets.CPANEL_URL }}/execute/VersionControl/deploy?repository_root=$REPO_PATH"
+          "${{ secrets.CPANEL_URL }}/execute/VersionControl/create_deployment?repository_root=$REPO_PATH"
