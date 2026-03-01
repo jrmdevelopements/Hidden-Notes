@@ -4,5 +4,10 @@ deployment:
     - /usr/bin/git fetch origin
     - /usr/bin/git reset --hard HEAD
     - /usr/bin/git clean -df
-    - /usr/local/bin/npm install --production
-    - touch tmp/restart.txt
+    
+    # Using the path confirmed by your terminal
+    - /bin/npm install --production
+    
+    - /bin/chmod -R 755 .
+    - /usr/bin/mkdir -p tmp
+    - /usr/bin/touch tmp/restart.txt
