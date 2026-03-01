@@ -10,5 +10,6 @@ deployment:
     
     # 3. Environment setup
     - /usr/local/bin/npm install --production
+    - /usr/local/bin/npm run build 
     - mkdir -p tmp
     - touch tmp/restart.txt
