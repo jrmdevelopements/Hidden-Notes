@@ -13,7 +13,7 @@ app.use('/api/notes', noteRoutes);
 
 // Health check
 app.get('/', (req, res) => {
-  res.send('Job Notes API Running staging version 7th turn');
+  res.send('Job Notes API Running staging version try 1');
 });
 
 const PORT = process.env.PORT || 5000;
