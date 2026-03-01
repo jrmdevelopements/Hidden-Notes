@@ -1,8 +1,14 @@
 ---
 deployment:
   tasks:
-    - /usr/bin/git reset --hard origin/staging
+    # 1. Force the local files to match the repo's current HEAD 
+    # (Removes any accidental local changes on server)
+    - /usr/bin/git reset --hard HEAD
+    
+    # 2. Set permissions (Standard for public_html)
     - /bin/chmod -R 755 *
+    
+    # 3. Environment setup
     - /usr/local/bin/npm install --production
     - mkdir -p tmp
     - touch tmp/restart.txt

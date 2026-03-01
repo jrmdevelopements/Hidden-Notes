@@ -15,10 +15,10 @@ jobs:
 
       - name: Trigger cPanel Update and Deploy
         run: |
-          # 1. Define the correct path based on the branch
+          # 1. Logic to select the folder based on branch
           BASE_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au"
           
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
             REPO_PATH="$BASE_PATH/live"
             BRANCH="main"
           else
@@ -26,21 +26,20 @@ jobs:
             BRANCH="staging"
           fi
           
-          echo "Targeting path: $REPO_PATH on branch: $BRANCH"
-          
-          # 2. Step One: Force the Version Control Update
-          # We use -d to ensure cPanel receives the root and branch explicitly
-          echo "Step 1: Fetching latest changes from GitHub to Server..."
-          curl -X POST \
-          -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-          -d "repository_root=$REPO_PATH" \
-          -d "branch=$BRANCH" \
-          "${{ secrets.CPANEL_URL }}/execute/VersionControl/update"
+          echo "🚀 Deploying branch [$BRANCH] to path [$REPO_PATH]"
 
-          # 3. Step Two: Trigger Deployment Tasks
-          # This executes the logic inside your .cpanel.yml file
-          echo "Step 2: Running .cpanel.yml deployment tasks..."
-          curl -X POST \
-          -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-          -d "repository_root=$REPO_PATH" \
-          "${{ secrets.CPANEL_URL }}/execute/VersionControlDeployment/create"
+          # 2. Update the Repository on the server
+          # Note: We use -v to see exactly why it fails if it does
+          echo "Step 1: Pulling latest changes..."
+          curl -v -X POST \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            -d "repository_root=$REPO_PATH" \
+            -d "branch=$BRANCH" \
+            "${{ secrets.CPANEL_URL }}/execute/VersionControl/update"
+
+          # 3. Trigger the .cpanel.yml tasks
+          echo "Step 2: Executing deployment tasks..."
+          curl -v -X POST \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            -d "repository_root=$REPO_PATH" \
+            "${{ secrets.CPANEL_URL }}/execute/VersionControlDeployment/create"
