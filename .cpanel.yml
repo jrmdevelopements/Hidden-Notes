@@ -1,12 +1,8 @@
 ---
 deployment:
   tasks:
-    # This is the most important line - it clears the "Dirty" state
-    - /usr/bin/git fetch origin staging
-    - /usr/bin/git reset --hard origin/staging
-    
-    # Now run your setup tasks
-    - /bin/chmod -R 755 *
+    - /usr/bin/git fetch origin
+    - /usr/bin/git reset --hard HEAD
+    - /usr/bin/git clean -df
     - /usr/local/bin/npm install --production
-    - mkdir -p tmp
     - touch tmp/restart.txt
