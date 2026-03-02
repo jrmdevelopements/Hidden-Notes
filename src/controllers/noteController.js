@@ -1,82 +1,53 @@
-const noteModel = require('../models/noteModel');
+const asyncHandler = require('../utils/asyncHandler');
+const service = require('../services/noteService');
 
-exports.create = async (req, res) => {
-  try {
-    const { jobuuid, notes } = req.body;
+exports.create = asyncHandler(async (req, res) => {
+  const result = await service.createNote(req.body);
+  res.status(201).json({ id: result.insertId, ...req.body });
+});
 
-    if (!jobuuid || !notes) {
-      return res.status(400).json({ message: 'jobuuid and notes are required' });
-    }
+exports.getAll = asyncHandler(async (req, res) => {
+  const notes = await service.getNotes(req.pagination);
+  res.json(notes);
+});
 
-    const result = await noteModel.createNote(jobuuid, notes);
+exports.getOne = asyncHandler(async (req, res) => {
+  const note = await service.getNote(req.params.id);
 
-    res.status(201).json({
-      id: result.insertId,
-      jobuuid,
-      notes
-    });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  if (!note) {
+    return res.status(404).json({ message: 'Note not found' });
   }
-};
 
-exports.getAll = async (req, res) => {
-  try {
-    const notes = await noteModel.getAllNotes();
-    res.json(notes);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  res.json(note);
+});
+
+exports.getOnejobuuid = asyncHandler(async (req, res) => {
+  const note = await service.getNoteJobuuid(req.params.jobuuid);
+
+  if (!note) {
+    return res.status(404).json({ message: 'Note not found' });
   }
-};
 
-exports.getOne = async (req, res) => {
-  try {
-    const note = await noteModel.getNoteById(req.params.id);
+  res.json(note);
+});
 
-    if (!note) {
-      return res.status(404).json({ message: 'Note not found' });
-    }
 
-    res.json(note);
+exports.update = asyncHandler(async (req, res) => {
+  const result = await service.updateNote(req.params.id, req.body);
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  if (result.affectedRows === 0) {
+    return res.status(404).json({ message: 'Note not found' });
   }
-};
 
-exports.update = async (req, res) => {
-  try {
-    const { jobuuid, notes } = req.body;
+  res.json({ message: 'Note updated successfully' });
+});
 
-    const result = await noteModel.updateNote(
-      req.params.id,
-      jobuuid,
-      notes
-    );
+exports.remove = asyncHandler(async (req, res) => {
+  const result = await service.deleteNote(req.params.id);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Note not found' });
-    }
-
-    res.json({ message: 'Note updated successfully' });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  if (result.affectedRows === 0) {
+    return res.status(404).json({ message: 'Note not found' });
   }
-};
 
-exports.remove = async (req, res) => {
-  try {
-    const result = await noteModel.deleteNote(req.params.id);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Note not found' });
-    }
-
-    res.json({ message: 'Note deleted successfully' });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+  res.json({ message: 'Note deleted successfully' });
+});

@@ -1,19 +1,22 @@
 const db = require('../config/db');
 
-exports.createNote = async (jobuuid, notes) => {
+exports.create = async (data) => {
   const [result] = await db.query(
     'INSERT INTO job_notes (jobuuid, notes) VALUES (?, ?)',
-    [jobuuid, notes]
+    [data.jobuuid, data.notes]
   );
   return result;
 };
 
-exports.getAllNotes = async () => {
-  const [rows] = await db.query('SELECT * FROM job_notes');
+exports.findAll = async (pagination) => {
+  const [rows] = await db.query(
+    'SELECT * FROM job_notes LIMIT ? OFFSET ?',
+    [pagination.limit, pagination.offset]
+  );
   return rows;
 };
 
-exports.getNoteById = async (id) => {
+exports.findById = async (id) => {
   const [rows] = await db.query(
     'SELECT * FROM job_notes WHERE id = ?',
     [id]
@@ -21,23 +24,29 @@ exports.getNoteById = async (id) => {
   return rows[0];
 };
 
-exports.getNoteJobuuid = async (jobuuid) => {
+exports.findByjobuuid = async (jobuuid) => {
+    
   const [rows] = await db.query(
     'SELECT * FROM job_notes WHERE jobuuid = ?',
     [jobuuid]
   );
   return rows[0];
+  
 };
 
-exports.updateNote = async (id, jobuuid, notes) => {
+
+
+
+
+exports.update = async (id, data) => {
   const [result] = await db.query(
     'UPDATE job_notes SET jobuuid = ?, notes = ? WHERE id = ?',
-    [jobuuid, notes, id]
+    [data.jobuuid, data.notes, id]
   );
   return result;
 };
 
-exports.deleteNote = async (id) => {
+exports.delete = async (id) => {
   const [result] = await db.query(
     'DELETE FROM job_notes WHERE id = ?',
     [id]

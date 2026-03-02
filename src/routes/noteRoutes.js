@@ -7,12 +7,12 @@ const pagination = require('../middleware/paginationMiddleware');
 const { createNoteSchema } = require('../validators/noteValidator');
 const controller = require('../controllers/noteController');
 
-// Protect ALL routes using API key
-// router.use(apiKey);
+router.use(apiKey);
 
 router.post('/', validate(createNoteSchema), controller.create);
 router.get('/', pagination, controller.getAll);
-router.get('/:id', controller.getOne);
+// router.get('/:id', controller.getOne);
+router.get('/:jobuuid', controller.getOnejobuuid);
 router.put('/:id', validate(createNoteSchema), controller.update);
 router.delete('/:id', controller.remove);
 
