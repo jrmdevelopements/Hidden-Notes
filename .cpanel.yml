@@ -1,5 +1,13 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/staging/
-    - /bin/cp -R * $DEPLOYPATH
+    - /usr/bin/git fetch origin
+    - /usr/bin/git reset --hard HEAD
+    - /usr/bin/git clean -df
+    
+    # Using the path confirmed by your terminal
+    - /bin/npm install --production
+    
+    - /bin/chmod -R 755 .
+    - /usr/bin/mkdir -p tmp
+    - /usr/bin/touch tmp/restart.txt

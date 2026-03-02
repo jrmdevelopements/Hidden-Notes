@@ -1,4 +1,4 @@
-name: Pro-Flow Deploy
+name: Deploy to cPanel
 
 on:
   push:
@@ -10,15 +10,36 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Command cPanel to Pull
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Trigger cPanel Update and Deploy
         run: |
-          # Logic to pick the right path
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            REPO_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/live"
+          # 1. Logic to select the folder based on branch
+          BASE_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au"
+          
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            REPO_PATH="$BASE_PATH/live"
+            BRANCH="main"
           else
-            REPO_PATH="/home/omaarevv/public_html/hiddennotes.yesm8australia.com.au/staging"
+            REPO_PATH="$BASE_PATH/staging"
+            BRANCH="staging"
           fi
           
-          # The API call using your Secrets
-          curl -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
-          "${{ secrets.CPANEL_URL }}/execute/VersionControl/update?repository_root=$REPO_PATH"
+          echo "🚀 Deploying branch [$BRANCH] to path [$REPO_PATH]"
+
+          # 2. Update the Repository on the server
+          # Note: We use -v to see exactly why it fails if it does
+          echo "Step 1: Pulling latest changes..."
+          curl -v -X POST \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            -d "repository_root=$REPO_PATH" \
+            -d "branch=$BRANCH" \
+            "${{ secrets.CPANEL_URL }}/execute/VersionControl/update"
+
+          # 3. Trigger the .cpanel.yml tasks
+          echo "Step 2: Executing deployment tasks..."
+          curl -v -X POST \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_TOKEN }}" \
+            -d "repository_root=$REPO_PATH" \
+            "${{ secrets.CPANEL_URL }}/execute/VersionControlDeployment/create"
