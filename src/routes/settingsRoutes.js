@@ -5,10 +5,8 @@ const settingsController = require('../controllers/settingsController');
 
 router.use(apiKey);
 
-// GET roles for a specific account
 router.get('/roles/:accountUUID', settingsController.getRoleSettings);
-// POST/SAVE roles for a specific account
 router.post('/roles', settingsController.saveRoleSettings);
-
+router.put('/hidden-notes-roles', settingsController.updateHiddenNotesAllowedRoles);
 
 module.exports = router;

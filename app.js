@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 
-const noteRoutes = require('./src/routes/noteRoutes');
+const noteRoutes = require('./src/routes/hiddenNotesRoutes');
 const settingsRoutes = require('./src/routes/settingsRoutes');
 const errorHandler = require('./src/middleware/errorHandler');
 const notFound = require('./src/middleware/notFound');
