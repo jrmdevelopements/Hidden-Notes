@@ -29,6 +29,72 @@ exports.getOne = asyncHandler(async (req, res) => {
 
 exports.getOneByJobuuid = asyncHandler(async (req, res) => {
   const account_uuid = req.header('x-account-uuid');
+  const userRole = req.header('x-user-role');
+  const { jobuuid } = req.params;
+
+  if (!account_uuid) {
+    return res.status(400).json({ message: 'Account UUID required' });
+  }
+
+  if (!userRole) {
+    return res.status(400).json({ message: 'User role required' });
+  }
+
+  if (!jobuuid) {
+    return res.status(400).json({ message: 'Job UUID required' });
+  }
+
+  // ✅ Fetch allowed roles
+  const allowedRoles = await settingsService.getByKey(
+    account_uuid,
+    'roles'
+  );
+
+  
+  console.log(allowedRoles);
+  
+  
+  // ✅ Ensure array
+  const finalAllowedRoles = Array.isArray(allowedRoles) ? allowedRoles : [];
+
+  // ✅ Normalize roles (case-insensitive comparison)
+  const normalizedAllowedRoles = finalAllowedRoles.map(r =>
+    String(r).toLowerCase()
+  );
+
+  const normalizedUserRole = String(userRole).toLowerCase();
+
+  // ✅ Debug
+  console.log('Allowed Roles:', normalizedAllowedRoles);
+  console.log('User Role:', normalizedUserRole);
+
+  // ✅ Permission check
+  if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
+    return res.status(403).json({
+      message: 'Your role does not have permission to view hidden notes.'
+    });
+  }
+
+  // ✅ Fetch note
+  const note = await hiddenNotesService.getNoteByJobuuid(
+    account_uuid,
+    jobuuid
+  );
+
+  if (!note) {
+    return res.status(404).json({ message: 'Note not found' });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: note
+  });
+});
+
+
+
+exports.getOneByJobuuidold = asyncHandler(async (req, res) => {
+  const account_uuid = req.header('x-account-uuid');
   if (!account_uuid) return res.status(400).json({ message: 'Account UUID required' });
 
   const { jobuuid } = req.params;
@@ -36,13 +102,14 @@ exports.getOneByJobuuid = asyncHandler(async (req, res) => {
 
   // Fetch allowed roles for this account
   const allowedRoles = await settingsService.getByKey(account_uuid, 'hidden_notes_allowed_roles');
+  res.status(200).json(allowedRoles);
+  
+  // if (!allowedRoles || !allowedRoles.includes(userRole)) {
+  //   return res.status(403).json({ message: 'Your role does not have permission to view hidden notes.' });
+  // }
 
-  if (!allowedRoles || !allowedRoles.includes(userRole)) {
-    return res.status(403).json({ message: 'Your role does not have permission to view hidden notes.' });
-  }
-
-  const note = await hiddenNotesService.getNoteByJobuuid(account_uuid, jobuuid);
-  if (!note) return res.status(404).json({ message: 'Note not found' });
+  // const note = await hiddenNotesService.getNoteByJobuuid(account_uuid, jobuuid);
+  // if (!note) return res.status(404).json({ message: 'Note not found' });
 
   res.json(note);
 });
