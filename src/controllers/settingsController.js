@@ -18,7 +18,7 @@ exports.getRoleSettings = async (req, res) => {
       success: true,
       roles: Array.isArray(roles) && roles.length
         ? roles
-        : ["Default Business Owner Role"]
+        : []
     });
 
   } catch (error) {
