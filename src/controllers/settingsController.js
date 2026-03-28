@@ -16,9 +16,7 @@ exports.getRoleSettings = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      roles: Array.isArray(roles) && roles.length
-        ? roles
-        : []
+      roles: Array.isArray(roles) ? roles : []
     });
 
   } catch (error) {
@@ -50,7 +48,6 @@ exports.saveRoleSettings = async (req, res) => {
       });
     }
 
-    // ✅ Normalize roles (remove empty + trim)
     const cleanedRoles = roles
       .filter(r => typeof r === 'string' && r.trim())
       .map(r => r.trim());
@@ -59,7 +56,7 @@ exports.saveRoleSettings = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Settings updated successfully.',
+      message: 'Roles saved successfully.',
       roles: cleanedRoles
     });
 
@@ -74,7 +71,7 @@ exports.saveRoleSettings = async (req, res) => {
 
 
 // ✅ Update Hidden Notes Permissions
-exports.updateHiddenNotesAllowedRoles = async (req, res) => {
+exports.updateRoleSettings = async (req, res) => {
   try {
     const { accountUUID, roles } = req.body;
 
@@ -92,14 +89,14 @@ exports.updateHiddenNotesAllowedRoles = async (req, res) => {
       });
     }
 
-    // ✅ Normalize roles
     const cleanedRoles = roles
       .filter(r => typeof r === 'string' && r.trim())
-      .map(r => r.trim().toLowerCase()); // 👈 important for consistency
+      .map(r => r.trim().toLowerCase());
 
+    // 🔥 FIXED KEY (no overwrite bug)
     await settingsService.updateByKey(
       accountUUID,
-      'roles',
+      'hidden_notes_roles',
       cleanedRoles
     );
 

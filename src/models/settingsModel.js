@@ -1,108 +1,130 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 class SettingsModel {
   /**
    * Get a specific setting key for an account.
-   * @param {string} account_uuid
-   * @param {string} key
-   * @returns {any} value or null if not found
    */
   static async getByKey(account_uuid, key) {
-  const [rows] = await db.query(
-    'SELECT setting_value FROM app_settings WHERE account_uuid = ? LIMIT 1',
-    [account_uuid]
-  );
+    const [rows] = await db.query(
+      "SELECT setting_value FROM app_settings WHERE account_uuid = ? LIMIT 1",
+      [account_uuid],
+    );
 
-  if (!rows.length) return null;
+    if (!rows.length) return null;
 
-  let settings = rows[0].setting_value;
+    let settings = rows[0].setting_value;
 
-  // ✅ Parse if string
-  if (typeof settings === 'string') {
-    try {
-      settings = JSON.parse(settings);
-    } catch (err) {
-      console.error('Invalid JSON in setting_value:', err);
-      return null;
-    }
-  }
-
-    console.log(settings);
-    
-    
-  // ✅ Ensure valid object
-  if (!settings || typeof settings !== 'object') {
-    return null;
-  }
-
-  let value = settings[key];
-
-  // ❗ Key missing
-  if (value === undefined) {
-    console.warn(`Settings key "${key}" not found for account: ${account_uuid}`);
-    return null;
-  }
-
-  // ✅ Handle double-encoded JSON
-  if (typeof value === 'string') {
-    try {
-      value = JSON.parse(value);
-    } catch (e) {
-      // ignore if not JSON
-    }
-  }
-
-  return value;
-}
-
-  /**
-   * Update a specific setting key for an account.
-   * This method works even without a unique index on account_uuid.
-   * It first attempts to update; if no rows are updated, it inserts a new row.
-   * @param {string} account_uuid
-   * @param {string} key
-   * @param {any} value
-   * @returns {object} result from the last query
-   */
-  static async updateByKey(account_uuid, key, value) {
-  // Get existing settings
-  const [rows] = await db.query(
-    'SELECT setting_value FROM app_settings WHERE account_uuid = ? LIMIT 1',
-    [account_uuid]
-  );
-
-  let settings = {};
-
-  if (rows.length) {
-    settings = rows[0].setting_value;
-
-    // ✅ Parse only if it's string
-    if (typeof settings === 'string') {
+    // Parse JSON safely
+    if (typeof settings === "string") {
       try {
         settings = JSON.parse(settings);
       } catch (err) {
-        console.error('Invalid JSON in DB:', err);
-        settings = {};
+        console.error("Invalid JSON in setting_value:", err);
+        return null;
       }
     }
+
+    if (!settings || typeof settings !== "object") {
+      return null;
+    }
+
+    let value = settings[key];
+
+    if (value === undefined) {
+      return null;
+    }
+
+    // Handle double-encoded JSON
+    if (typeof value === "string") {
+      try {
+        value = JSON.parse(value);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return value;
   }
 
-  // ✅ Ensure it's object
-  if (!settings || typeof settings !== 'object') {
-    settings = {};
+  /**
+   * Update a specific setting key (AUTO CREATE if not exists)
+   */
+  static async updateByKey(account_uuid, key, value) {
+    const [rows] = await db.query(
+      "SELECT setting_value FROM app_settings WHERE account_uuid = ? LIMIT 1",
+      [account_uuid],
+    );
+
+    let settings = {};
+    const exists = rows.length > 0;
+
+    if (exists) {
+      settings = rows[0].setting_value;
+
+      if (typeof settings === "string") {
+        try {
+          settings = JSON.parse(settings);
+        } catch (err) {
+          console.error("Invalid JSON in DB:", err);
+          settings = {};
+        }
+      }
+    }
+
+    if (!settings || typeof settings !== "object") {
+      settings = {};
+    }
+
+    // Update key
+    settings[key] = value;
+
+    const stringified = JSON.stringify(settings);
+
+    // INSERT or UPDATE
+    if (exists) {
+      await db.query(
+        "UPDATE app_settings SET setting_value = ? WHERE account_uuid = ?",
+        [stringified, account_uuid],
+      );
+    } else {
+      await db.query(
+        "INSERT INTO app_settings (account_uuid, setting_value) VALUES (?, ?)",
+        [account_uuid, stringified],
+      );
+    }
+
+    return true;
   }
 
-  // ✅ Update key
-  settings[key] = value;
+  /**
+   * Create a new settings record (manual use if needed)
+   */
+  static async create(account_uuid, initialSettings = {}) {
+    try {
+      const [rows] = await db.query(
+        "SELECT account_uuid FROM app_settings WHERE account_uuid = ? LIMIT 1",
+        [account_uuid]
+      );
 
-  // ✅ Save back (stringify ONLY here)
-  await db.query(
-    'UPDATE app_settings SET setting_value = ? WHERE account_uuid = ?',
-    [JSON.stringify(settings), account_uuid]
-  );
+      if (rows.length) {
+        return false;
+      }
 
-  return true;
-}
+      if (!initialSettings || typeof initialSettings !== "object") {
+        initialSettings = {};
+      }
+
+      await db.query(
+        "INSERT INTO app_settings (account_uuid, setting_value) VALUES (?, ?)",
+        [account_uuid, JSON.stringify(initialSettings)]
+      );
+
+      return true;
+    } catch (err) {
+      console.error("Error creating settings:", err);
+      throw err;
+    }
+  }
 }
 
 module.exports = SettingsModel;
