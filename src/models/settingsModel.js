@@ -12,7 +12,7 @@ class SettingsModel {
 
     if (!rows.length) return [];
 
-    let roles = rows[0].roles;
+    let roles = rows[0];
 
     // Parse JSON safely
     if (typeof roles === "string") {
