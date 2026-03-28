@@ -10,6 +10,9 @@ class SettingsModel {
       [account_uuid],
     );
 
+    
+    return rows;
+    
     if (!rows.length) return [];
 
     let roles = rows[0];
