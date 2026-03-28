@@ -10,12 +10,9 @@ class SettingsModel {
       [account_uuid],
     );
 
-    
-    return rows;
-    
     if (!rows.length) return [];
 
-    let roles = rows[0];
+    let roles = rows[0].roles;
 
     // Parse JSON safely
     if (typeof roles === "string") {
@@ -27,32 +24,18 @@ class SettingsModel {
       }
     }
 
-    // Ensure array
-    if (!Array.isArray(roles)) {
-      return [];
-    }
-
-    return roles;
+    return Array.isArray(roles) ? roles : [];
   }
 
   /**
    * Create roles (INSERT ONLY)
    */
   static async create(account_uuid, roles = []) {
+    if (!Array.isArray(roles)) {
+      throw new Error("Roles must be an array");
+    }
+
     try {
-      const [rows] = await db.query(
-        "SELECT account_uuid FROM permissions WHERE account_uuid = ? LIMIT 1",
-        [account_uuid]
-      );
-
-      if (rows.length) {
-        throw new Error("Roles already exist for this account");
-      }
-
-      if (!Array.isArray(roles)) {
-        throw new Error("Roles must be an array");
-      }
-
       await db.query(
         "INSERT INTO permissions (account_uuid, roles) VALUES (?, ?)",
         [account_uuid, JSON.stringify(roles)]

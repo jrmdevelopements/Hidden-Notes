@@ -12,7 +12,7 @@ exports.getRoleSettings = async (req, res) => {
       });
     }
 
-    const roles = await settingsService.get(accountUUID); // ✅ FIXED
+    const roles = await settingsService.get(accountUUID);
 
     res.status(200).json({
       success: true,
@@ -29,7 +29,7 @@ exports.getRoleSettings = async (req, res) => {
 };
 
 
-// ✅ Save Roles (CREATE ONLY)
+// ✅ Save Roles (CREATE with fallback to UPDATE)
 exports.saveRoleSettings = async (req, res) => {
   try {
     const { accountUUID, roles } = req.body;
@@ -52,24 +52,25 @@ exports.saveRoleSettings = async (req, res) => {
       .filter(r => typeof r === 'string' && r.trim())
       .map(r => r.trim());
 
-    await settingsService.create(accountUUID, cleanedRoles); // ✅ INSERT ONLY
+    // 🔥 CREATE → if duplicate → UPDATE
+    try {
+      await settingsService.create(accountUUID, cleanedRoles);
+    } catch (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        await settingsService.update(accountUUID, cleanedRoles);
+      } else {
+        throw err;
+      }
+    }
 
     res.status(200).json({
       success: true,
-      message: 'Roles created successfully.',
+      message: 'Roles saved successfully.',
       roles: cleanedRoles
     });
 
   } catch (error) {
     console.error('saveRoleSettings error:', error);
-
-    // 🔥 Better error response
-    if (error.message.includes('already exist')) {
-      return res.status(409).json({
-        success: false,
-        error: error.message
-      });
-    }
 
     res.status(500).json({
       success: false,
@@ -79,7 +80,7 @@ exports.saveRoleSettings = async (req, res) => {
 };
 
 
-// ✅ Update Roles (UPDATE ONLY)
+// ✅ Update Roles (STRICT UPDATE ONLY)
 exports.updateRoleSettings = async (req, res) => {
   try {
     const { accountUUID, roles } = req.body;
@@ -102,7 +103,7 @@ exports.updateRoleSettings = async (req, res) => {
       .filter(r => typeof r === 'string' && r.trim())
       .map(r => r.trim());
 
-    await settingsService.update(accountUUID, cleanedRoles); // ✅ UPDATE ONLY
+    await settingsService.update(accountUUID, cleanedRoles);
 
     res.status(200).json({
       success: true,
