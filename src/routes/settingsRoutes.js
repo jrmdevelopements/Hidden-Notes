@@ -7,6 +7,6 @@ router.use(apiKey);
 
 router.get('/roles/:accountUUID', settingsController.getRoleSettings);
 router.post('/roles', settingsController.saveRoleSettings);
-router.put('/hidden-notes-roles', settingsController.updateRoleSettings);
+router.put('/roles', settingsController.updateRoleSettings);
 
 module.exports = router;

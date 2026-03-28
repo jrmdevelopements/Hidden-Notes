@@ -12,7 +12,7 @@ exports.getRoleSettings = async (req, res) => {
       });
     }
 
-    const roles = await settingsService.getByKey(accountUUID, 'roles');
+    const roles = await settingsService.get(accountUUID); // ✅ FIXED
 
     res.status(200).json({
       success: true,
@@ -29,7 +29,7 @@ exports.getRoleSettings = async (req, res) => {
 };
 
 
-// ✅ Save Roles
+// ✅ Save Roles (CREATE ONLY)
 exports.saveRoleSettings = async (req, res) => {
   try {
     const { accountUUID, roles } = req.body;
@@ -52,16 +52,25 @@ exports.saveRoleSettings = async (req, res) => {
       .filter(r => typeof r === 'string' && r.trim())
       .map(r => r.trim());
 
-    await settingsService.updateByKey(accountUUID, 'roles', cleanedRoles);
+    await settingsService.create(accountUUID, cleanedRoles); // ✅ INSERT ONLY
 
     res.status(200).json({
       success: true,
-      message: 'Roles saved successfully.',
+      message: 'Roles created successfully.',
       roles: cleanedRoles
     });
 
   } catch (error) {
     console.error('saveRoleSettings error:', error);
+
+    // 🔥 Better error response
+    if (error.message.includes('already exist')) {
+      return res.status(409).json({
+        success: false,
+        error: error.message
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to save roles'
@@ -70,7 +79,7 @@ exports.saveRoleSettings = async (req, res) => {
 };
 
 
-// ✅ Update Hidden Notes Permissions
+// ✅ Update Roles (UPDATE ONLY)
 exports.updateRoleSettings = async (req, res) => {
   try {
     const { accountUUID, roles } = req.body;
@@ -91,26 +100,29 @@ exports.updateRoleSettings = async (req, res) => {
 
     const cleanedRoles = roles
       .filter(r => typeof r === 'string' && r.trim())
-      .map(r => r.trim().toLowerCase());
+      .map(r => r.trim());
 
-    // 🔥 FIXED KEY (no overwrite bug)
-    await settingsService.updateByKey(
-      accountUUID,
-      'hidden_notes_roles',
-      cleanedRoles
-    );
+    await settingsService.update(accountUUID, cleanedRoles); // ✅ UPDATE ONLY
 
     res.status(200).json({
       success: true,
-      message: 'Permissions updated successfully.',
+      message: 'Roles updated successfully.',
       roles: cleanedRoles
     });
 
   } catch (error) {
-    console.error('updateHiddenNotesAllowedRoles error:', error);
+    console.error('updateRoleSettings error:', error);
+
+    if (error.message.includes('not found')) {
+      return res.status(404).json({
+        success: false,
+        error: error.message
+      });
+    }
+
     res.status(500).json({
       success: false,
-      error: 'Failed to update permissions'
+      error: 'Failed to update roles'
     });
   }
 };
