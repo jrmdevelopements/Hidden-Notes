@@ -1,129 +1,64 @@
-const settingsService = require('../services/settingsService');
+const SettingsModel = require('../models/settingsModel');
 
-// ✅ Get Roles
+/**
+ * Get role settings for an account
+ */
 exports.getRoleSettings = async (req, res) => {
+  const { accountUUID } = req.params;
+
   try {
-    const { accountUUID } = req.params;
-
-    if (!accountUUID) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account UUID is required'
-      });
-    }
-
-    const roles = await settingsService.get(accountUUID);
-
-    res.status(200).json({
-      success: true,
-      roles: Array.isArray(roles) ? roles : []
-    });
-
-  } catch (error) {
-    console.error('getRoleSettings error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch roles'
-    });
+    const roles = await SettingsModel.get(accountUUID);
+    res.json({ success: true, roles });
+  } catch (err) {
+    console.error('Error fetching role settings:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch role settings' });
   }
 };
 
-
-// ✅ Save Roles (CREATE with fallback to UPDATE)
+/**
+ * Save role settings (create if not exists, otherwise update)
+ */
 exports.saveRoleSettings = async (req, res) => {
+  const { accountUUID, roles } = req.body;
+
+  if (!accountUUID || !Array.isArray(roles)) {
+    return res.status(400).json({ success: false, error: 'Invalid request: accountUUID and roles array required' });
+  }
+
   try {
-    const { accountUUID, roles } = req.body;
+    // Check if roles already exist for this account
+    const existingRoles = await SettingsModel.get(accountUUID);
 
-    if (!accountUUID) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account UUID is required'
-      });
+    if (existingRoles.length === 0) {
+      // No record found → create new
+      await SettingsModel.create(accountUUID, roles);
+    } else {
+      // Record exists → update
+      await SettingsModel.update(accountUUID, roles);
     }
 
-    if (!Array.isArray(roles)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Roles must be an array'
-      });
-    }
-
-    const cleanedRoles = roles
-      .filter(r => typeof r === 'string' && r.trim())
-      .map(r => r.trim());
-
-    // 🔥 CREATE → if duplicate → UPDATE
-    try {
-      await settingsService.create(accountUUID, cleanedRoles);
-    } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        await settingsService.update(accountUUID, cleanedRoles);
-      } else {
-        throw err;
-      }
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Roles saved successfully.',
-      roles: cleanedRoles
-    });
-
-  } catch (error) {
-    console.error('saveRoleSettings error:', error);
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to save roles'
-    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving role settings:', err);
+    res.status(500).json({ success: false, error: 'Failed to save roles' });
   }
 };
 
-
-// ✅ Update Roles (STRICT UPDATE ONLY)
+/**
+ * Update role settings (explicit update – expects existing record)
+ */
 exports.updateRoleSettings = async (req, res) => {
+  const { accountUUID, roles } = req.body;
+
+  if (!accountUUID || !Array.isArray(roles)) {
+    return res.status(400).json({ success: false, error: 'Invalid request: accountUUID and roles array required' });
+  }
+
   try {
-    const { accountUUID, roles } = req.body;
-
-    if (!accountUUID) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account UUID is required'
-      });
-    }
-
-    if (!Array.isArray(roles)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Roles must be an array'
-      });
-    }
-
-    const cleanedRoles = roles
-      .filter(r => typeof r === 'string' && r.trim())
-      .map(r => r.trim());
-
-    await settingsService.update(accountUUID, cleanedRoles);
-
-    res.status(200).json({
-      success: true,
-      message: 'Roles updated successfully.',
-      roles: cleanedRoles
-    });
-
-  } catch (error) {
-    console.error('updateRoleSettings error:', error);
-
-    if (error.message.includes('not found')) {
-      return res.status(404).json({
-        success: false,
-        error: error.message
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update roles'
-    });
+    await SettingsModel.update(accountUUID, roles);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating role settings:', err);
+    res.status(500).json({ success: false, error: 'Failed to update roles' });
   }
 };
