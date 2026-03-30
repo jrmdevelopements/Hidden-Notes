@@ -45,11 +45,10 @@ exports.getOneByJobuuid = asyncHandler(async (req, res) => {
   }
 
   // ✅ Fetch allowed roles
-  const allowedRoles = await settingsService.getByKey(
-    account_uuid  );
+  const allowedRoles = await settingsService.get(account_uuid);
 
-  
   console.log(allowedRoles);
+  
   
   
   // ✅ Ensure array
