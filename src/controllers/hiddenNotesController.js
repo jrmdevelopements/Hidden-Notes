@@ -46,9 +46,7 @@ exports.getOneByJobuuid = asyncHandler(async (req, res) => {
 
   // ✅ Fetch allowed roles
   const allowedRoles = await settingsService.getByKey(
-    account_uuid,
-    'roles'
-  );
+    account_uuid  );
 
   
   console.log(allowedRoles);
@@ -101,7 +99,7 @@ exports.getOneByJobuuidold = asyncHandler(async (req, res) => {
   const userRole = req.header('x-user-role');
 
   // Fetch allowed roles for this account
-  const allowedRoles = await settingsService.getByKey(account_uuid, 'hidden_notes_allowed_roles');
+  const allowedRoles = await settingsService.get(account_uuid);
   res.status(200).json(allowedRoles);
   
   // if (!allowedRoles || !allowedRoles.includes(userRole)) {
